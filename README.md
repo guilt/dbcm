@@ -7,19 +7,19 @@ Usage
 
 Modern Java Usage:
 
-    try(Connection con = ConnectionWrapper.getConnection()) {
+    try(Connection con = ConnectionManagerHelper.getConnection()) {
     	//Blah.
     }
 
 Traditional Java Usage:
 
     try {
-    	Connection con = ConnectionWrapper.getConnection();
+    	Connection con = ConnectionManagerHelper.getConnection();
     	//Blah.
     } catch(SQLException sqle) {
     	//Handle Errors.
     } finally {
-    	ConnectionWrapper.closeConnection(con);
+    	ConnectionManagerHelper.closeConnection(con);
     }
 
 Installing
