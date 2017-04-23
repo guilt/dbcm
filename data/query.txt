@@ -1,0 +1,7 @@
+create table employee (name varchar(1) primary key,email varchar(11))
+insert into employee(name,email) values('A','a@email.com')
+select x from y
+insert into employee(name) values('B')
+insert into employee(name,email) values('C','c@email.com')
+select * from employee
+drop table employee

@@ -4,8 +4,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
-import org.karthikkumar.dbcm.util.Instantiator;
+import org.karthikkumar.dbcm.util.InstantiatorUtil;
 
 /**
  * JDBC Driver based ConnectorFactory.
@@ -14,10 +15,12 @@ import org.karthikkumar.dbcm.util.Instantiator;
  *
  */
 public class JDBCConnectorFactory extends AbstractConnectorFactory {
-	
-	private String mDriver=null;
-	private String mJDBCUrl=null;
-	private Properties mProp=null;
+
+	private static final Logger logger = Logger.getLogger(JDBCConnectorFactory.class.getCanonicalName());
+
+	protected String mDriver=null;
+	protected String mJDBCUrl=null;
+	protected Properties mProp=null;
 	
 	public void initializeValues(Properties pProp) {
 		if(pProp!=null){
@@ -36,13 +39,13 @@ public class JDBCConnectorFactory extends AbstractConnectorFactory {
 	public Connection getConnection() {
 		Connection mCon=null;
 		if(mDriver!=null) {
-			if(Instantiator.getInstance().createObject(mDriver)!=null) {
+			if(InstantiatorUtil.getInstance().createObject(mDriver)!=null) {
 				try {
-					mCon=DriverManager.getConnection(mJDBCUrl,mProp);					
+					mCon=DriverManager.getConnection(mJDBCUrl,mProp);
 				} catch (SQLException eSQLE) {
-					eSQLE.printStackTrace();
+					logger.severe(eSQLE.getMessage());
 					mCon=null;
-				}						
+				}
 			}				
 		}		
 		return mCon;

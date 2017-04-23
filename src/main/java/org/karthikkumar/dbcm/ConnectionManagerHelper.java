@@ -2,17 +2,17 @@ package org.karthikkumar.dbcm;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.logging.Logger;
 
 import org.karthikkumar.dbcm.config.Configurator;
-import org.karthikkumar.dbcm.config.impl.PropertyConfigurator;
-import org.karthikkumar.dbcm.config.impl.XMLConfigurator;
+import org.karthikkumar.dbcm.util.InstantiatorUtil;
+import static org.karthikkumar.dbcm.util.StringUtil.isEmpty;
 
 /**
  * The Entry Point into the library - The Connection Manager Helper.
  * <br>
- * <br>
- * It first searches for the <b>"config/dbcm.properties"</b> and then for 
- * the XML file <b>"config/dbcm.xml"</b>.
+ * It uses the System Property <b>dbcm.configurators</b> and it defaults
+ * to using PropertyConfigurator and then XMLConfigurator.
  * <br>
  * <br>
  * Sample Usage:
@@ -26,11 +26,14 @@ import org.karthikkumar.dbcm.config.impl.XMLConfigurator;
  *
  */
 final public class ConnectionManagerHelper{
-	
+
+	private static final Logger logger = Logger.getLogger(ConnectionManagerHelper.class.getCanonicalName());
+
 	private static ConnectionManagerHelper mCW=new ConnectionManagerHelper();	
 	private ConnectionManager mCM;
 	private boolean mInited=false;
-	
+	private static final String CONFIGURATORS="dbcm.configurators";
+	private static final String DEFCONFIGURATORS="org.karthikkumar.dbcm.config.impl.PropertyConfigurator,org.karthikkumar.dbcm.config.impl.XMLConfigurator";
 
 	private void init(boolean pReconf){
 		 Configurator mConf=null;
@@ -42,24 +45,25 @@ final public class ConnectionManagerHelper{
 			mCM = new ConnectionManager();
 		 }
 		 
-		 if(mCon==null) {
-			mConf=new PropertyConfigurator();
-		 	if(pReconf) mConf.reconfigure(mCM);
-		 	else mConf.configure(mCM); 
-		 	if((mCon=mCM.getDefaultConnection())!=null) mInited=true;
+		 final String configurators = System.getProperty(CONFIGURATORS, DEFCONFIGURATORS);
+		 for(final String configurator: configurators.split(",")) {
+			 if(isEmpty(configurator))
+				 continue;
+			 logger.config("Using Configurator: "+configurator);
+			 mConf=(Configurator)InstantiatorUtil.getInstance().createObject(configurator, Configurator.class);
+			 if(mConf == null)
+				 continue;
+			 logger.config("Found. Using Configurator: "+configurator);
+			 if(pReconf) mConf.reconfigure(mCM);
+			 else mConf.configure(mCM);
+			 if((mCon=mCM.getDefaultConnection())!=null) {
+				 logger.config("Connection Successful. Using Configurator: "+configurator);
+				 mInited=true;
+				 instCloseConnection(mCon);
+				 mCon=null;
+				 break;
+			 }
 		 }
-
-		 if(mCon==null) {			 
-			mConf=new XMLConfigurator();
-		 	if(pReconf) mConf.reconfigure(mCM);
-		 	else mConf.configure(mCM); 
-		 	if((mCon=mCM.getDefaultConnection())!=null) mInited=true;
-		 }
-		 
-		 if(mCon!=null) {
-			 instCloseConnection(mCon);
-			 mCon=null;
-		 }	 
 	}
 	
 	/**
@@ -109,7 +113,7 @@ final public class ConnectionManagerHelper{
 			try {
 				pCon.close();
 			} catch (SQLException eSQLE) {
-				eSQLE.printStackTrace();		
+				logger.severe(eSQLE.getMessage());
 			}
 		}
 	}

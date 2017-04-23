@@ -1,11 +1,14 @@
 package org.karthikkumar.dbcm.conn.impl;
 
+import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
-import org.karthikkumar.dbcm.util.Instantiator;
+import org.karthikkumar.dbcm.util.InstantiatorUtil;
+import static org.karthikkumar.dbcm.util.StringUtil.isEmpty;
 
 /**
  * Derby based ConnectorFactory.
@@ -13,53 +16,50 @@ import org.karthikkumar.dbcm.util.Instantiator;
  * @author Karthik Kumar Viswanathan &lt;karthikkumar@gmail.com&gt;
  *
  */
-public class DerbyJDBCConnectorFactory extends AbstractConnectorFactory {
+public class DerbyJDBCConnectorFactory extends JDBCConnectorFactory {
 
-	private String mDriver=null;
-	private String mJDBCDBName=null;
-	private String mJDBCStartUrl=null;
-	private String mJDBCEndUrl=null;
-	private Properties mProp=null;
+	private static final Logger logger = Logger.getLogger(DerbyJDBCConnectorFactory.class.getCanonicalName());
+
+	private String mJDBCDBName = null;
+	private String mJDBCEndUrl = null;
+	private String mErrorLog = null;
+
+	public static final OutputStream DERBY_ERROR_LOG_NULL = new OutputStream() {
+        public void write(int b) {}
+    };
 
 	public void initializeValues(Properties pProp) {
-		if(pProp!=null){
-			mProp=pProp;
-			mDriver="org.apache.derby.jdbc.EmbeddedDriver";
-			mJDBCDBName=mProp.getProperty("db");
-			if(mJDBCDBName==null||"".equals(mJDBCDBName)) mJDBCDBName="derby";
-			mJDBCStartUrl="jdbc:derby:"+mJDBCDBName+";create=true";
-			mJDBCEndUrl="jdbc:derby:;shutdown=true";
+		if (pProp != null) {
+			mProp = pProp;
+			mDriver = "org.apache.derby.jdbc.EmbeddedDriver";
+			mJDBCDBName = mProp.getProperty("db");
+			if (isEmpty(mJDBCDBName))
+				mJDBCDBName = "derby";
+			mErrorLog = mProp.getProperty("errorfile");
+			if (isEmpty(mErrorLog))
+				System.setProperty("derby.stream.error.field", DerbyJDBCConnectorFactory.class.getCanonicalName()+".DERBY_ERROR_LOG_NULL");
+			else
+				System.setProperty("derby.stream.error.file", mErrorLog);
+			mJDBCUrl = "jdbc:derby:" + mJDBCDBName + ";create=true";
+			mJDBCEndUrl = "jdbc:derby:;shutdown=true";
 		}
 	}
 
 	public void destroy() {
-		if(Instantiator.getInstance().createObject(mDriver)!=null) {
+		if (InstantiatorUtil.getInstance().createObject(mDriver) != null) {
+			Connection mCon=null;
 			try {
-				DriverManager.getConnection(mJDBCEndUrl);					
+				mCon = DriverManager.getConnection(mJDBCEndUrl);
+				mCon.close();
 			} catch (SQLException eSQLE) {
-				//Ignore:	eSQLE.printStackTrace();
-			}						
+				logger.severe(eSQLE.getMessage());
+			} finally {
+				mCon = null;
+			}
 		}
-		mDriver=null;
-		mJDBCDBName=null;
-		mJDBCStartUrl=null;
-		mJDBCEndUrl=null;
-		mProp=null;
+		mJDBCEndUrl = null;
+		mJDBCDBName = null;
+		super.destroy();
 	}
-	
-	public Connection getConnection() {
-		Connection mCon=null;
-		if(mDriver!=null) {
-			if(Instantiator.getInstance().createObject(mDriver)!=null) {
-				try {
-					mCon=DriverManager.getConnection(mJDBCStartUrl,mProp);					
-				} catch (SQLException eSQLE) {
-					eSQLE.printStackTrace();
-					mCon=null;
-				}						
-			}				
-		}		
-		return mCon;
-	}
-	
+
 }

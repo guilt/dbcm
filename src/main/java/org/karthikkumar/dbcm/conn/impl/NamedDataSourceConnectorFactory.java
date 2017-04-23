@@ -2,7 +2,7 @@ package org.karthikkumar.dbcm.conn.impl;
 
 import javax.sql.DataSource;
 
-import org.karthikkumar.dbcm.util.Instantiator;
+import org.karthikkumar.dbcm.util.InstantiatorUtil;
 
 import java.util.Properties;
 
@@ -29,7 +29,7 @@ public class NamedDataSourceConnectorFactory extends AbstractDataSourceConnector
 	}
 	
 	public DataSource getDataSource() {
-		if(mDS==null) mDS=(DataSource)Instantiator.getInstance().getNamedObject(mName,DataSource.class);
+		if(mDS==null) mDS=(DataSource)InstantiatorUtil.getInstance().getNamedObject(mName,DataSource.class);
 		return mDS;
 	}
 	
