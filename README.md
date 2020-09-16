@@ -7,12 +7,15 @@ Usage
 
 Modern Java Usage:
 
+```java
     try(Connection con = ConnectionManagerHelper.getConnection()) {
     	//Blah.
     }
+```
 
 Traditional Java Usage:
 
+```java
     try {
     	Connection con = ConnectionManagerHelper.getConnection();
     	//Blah.
@@ -21,8 +24,11 @@ Traditional Java Usage:
     } finally {
     	ConnectionManagerHelper.closeConnection(con);
     }
+```
 
 Installing
 ----------
 
+```bash
 mvn install -DperformRelease
+```

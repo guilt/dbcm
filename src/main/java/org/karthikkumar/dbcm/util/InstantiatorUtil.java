@@ -1,5 +1,6 @@
 package org.karthikkumar.dbcm.util;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Logger;
 
 import javax.naming.Context;
@@ -56,9 +57,15 @@ public class InstantiatorUtil {
 		if(pClass==null) return mObj;
 		if(pSuperClass==null||isSubClass(pClass,pSuperClass)) {
 			try {
-				mObj=pClass.newInstance();
+				mObj=pClass.getDeclaredConstructor().newInstance();
 			} catch (InstantiationException eIE) {
 				logger.severe(eIE.getMessage());
+				mObj=null;
+			} catch (InvocationTargetException eITE) {
+				logger.severe(eITE.getMessage());
+				mObj=null;
+			} catch (NoSuchMethodException eNSME) {
+				logger.severe(eNSME.getMessage());
 				mObj=null;
 			} catch (IllegalAccessException eIAE) {
 				logger.severe(eIAE.getMessage());

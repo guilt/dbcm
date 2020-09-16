@@ -128,13 +128,4 @@ final public class ConnectionManager {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#finalize()
-	 */
-	protected void finalize() throws Throwable {
-		destroy();
-	}
-
 }
