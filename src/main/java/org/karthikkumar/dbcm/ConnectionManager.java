@@ -26,7 +26,7 @@ import static org.karthikkumar.dbcm.util.StringUtil.isEmpty;
  * @author Karthik Kumar Viswanathan &lt;karthikkumar@gmail.com&gt;
  *
  */
-final public class ConnectionManager {
+public final class ConnectionManager {
 
 	private static final Logger logger = Logger.getLogger(ConnectionManager.class.getCanonicalName());
 	private final Map<String, ConnectorFactory> mConnectorFactories = new HashMap<String, ConnectorFactory>();

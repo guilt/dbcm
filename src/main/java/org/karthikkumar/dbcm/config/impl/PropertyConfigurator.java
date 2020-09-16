@@ -2,6 +2,7 @@ package org.karthikkumar.dbcm.config.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
@@ -56,14 +57,23 @@ public class PropertyConfigurator extends AbstractConfigurator {
 
 	private Properties readProperties(String pPropFileName) {
 		Properties mPropsNew = new Properties();
+		InputStream mIStream = null;
 		try {
-			mPropsNew.load(new FileInputStream(new File(pPropFileName)));
+			mIStream = new FileInputStream(new File(pPropFileName));
+			mPropsNew.load(mIStream);
 		} catch (FileNotFoundException eFNFE) {
 			logger.severe(eFNFE.getMessage());
 			mPropsNew = null;
 		} catch (IOException eIOE) {
 			logger.severe(eIOE.getMessage());
 			mPropsNew = null;
+		} finally {
+                	try {
+				if (mIStream != null) {
+					mIStream.close();
+				}
+                        } catch (IOException eIOE) { //Ignore.
+			}
 		}
 		return mPropsNew;
 	}
@@ -110,10 +120,12 @@ public class PropertyConfigurator extends AbstractConfigurator {
 		while (mEnum.hasMoreElements()) {
 			String mTemp, mTemp2, mTemp3;
 			mTemp2 = (String) mEnum.nextElement();
-			mTemp = null;
-			if (!isEmpty(mTemp2))
-				mTemp = mTemp2.trim();
-			if (!isEmpty(mTemp) && mTemp.startsWith(pPrefix)) {
+			if (isEmpty(mTemp2))
+				continue;
+			mTemp = mTemp2.trim();
+			if (isEmpty(mTemp))
+				continue;
+			if (mTemp.startsWith(pPrefix)) {
 				mTemp3 = mTemp.substring(pPrefix.length());
 				if (!isEmpty(mTemp3))
 					mNewProp.put(mTemp3, pProp.get(mTemp2));
@@ -207,7 +219,7 @@ public class PropertyConfigurator extends AbstractConfigurator {
 	public void configure(ConnectionManager pCM) {
 		if (pCM == null)
 			return;
-		synchronized (pCM) {
+		synchronized (ConnectionManager.class) {
 			processProperties(getProperties(), pCM);
 		}
 	}
